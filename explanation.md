@@ -143,7 +143,7 @@ dout: (B, T, D) ────┬───> np.sum(axis=0) ───────�
 - **WHY**: Injects what the token is and where it is in the sentence into a single dense vector.
 - **INPUT**: `token_ids` (`np.ndarray` of shape `(B, T)`).
 - **OUTPUT**: `np.ndarray` of shape `(B, T, D)`.
-- **MAIN FORMULA**: Implements $X_{\text{out}} = W_e[\text{token\_ids}] + W_p[:T]$.
+- **MAIN FORMULA**: Implements $X_{\text{out}} = W_e[X] + W_p[:T]$.
 
 #### `backward(dout)`
 - **WHAT**: Sums gradients across batch for $dW_p$, and accumulates gradients for $dW_e$ using `np.add.at`.
@@ -236,11 +236,11 @@ Output Projection: Y = Concat @ W_o + b_o ──> (B, T, D)
 - **MAIN FORMULA**: Implements $\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}} + \text{mask}\right)V$.
 
 #### `MultiHeadAttention.__init__(d_model, num_heads, std=0.02)`
-- **WHAT**: Validates $d_{model} \pmod{num\_heads} == 0$ and initializes $W_q, W_k, W_v, W_o \in \mathbb{R}^{D \times D}$ and biases.
+- **WHAT**: Validates $D \pmod h == 0$ and initializes $W_q, W_k, W_v, W_o \in \mathbb{R}^{D \times D}$ and biases.
 - **WHY**: Sets up parallel subspace projection parameters.
 - **INPUT**: `d_model` (`int`), `num_heads` (`int`), `std` (`float`).
 - **OUTPUT**: `None`.
-- **MAIN FORMULA**: Implements $d_k = d_{model} / num\_heads$.
+- **MAIN FORMULA**: Implements $d_k = D / h$.
 
 #### `MultiHeadAttention.forward(X)`
 - **WHAT**: Projects $X$ to $Q, K, V$, splits into $h$ heads, runs causal attention, concatenates heads, and applies $W_o$.
@@ -255,7 +255,7 @@ Output Projection: Y = Concat @ W_o + b_o ──> (B, T, D)
 - **INPUT**: `dout` (`np.ndarray` of shape `(B, T, D)`).
 - **OUTPUT**: `dX` (`np.ndarray` of shape `(B, T, D)`).
 - **MAIN FORMULAS**:
-  - $dV = A^T dout_{\text{heads}}, \quad dA = dout_{\text{heads}} V^T$
+  - $dV = A^T dO_{\text{head}}, \quad dA = dO_{\text{head}} V^T$
   - $dS = A \odot (dA - \sum (dA \odot A))$
   - $dQ = \frac{dS}{\sqrt{d_k}} K, \quad dK = \left(\frac{dS}{\sqrt{d_k}}\right)^T Q$
   - $dX = dQ W_q^T + dK W_k^T + dV W_v^T$
