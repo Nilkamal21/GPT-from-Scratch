@@ -384,7 +384,7 @@ Output Projection @ W_o + b_o:
 - **WHY**: Propagates loss gradients backward through normalization to the previous layer.
 - **INPUT**: `dout` (`np.ndarray` of shape `(B, T, D)`).
 - **OUTPUT**: `dx` (`np.ndarray` of shape `(B, T, D)`).
-- **MAIN FORMULA**: Implements $dx = \frac{\text{std\_inv}}{D} [D \cdot dx_{\text{hat}} - \sum dx_{\text{hat}} - \hat{x} \sum (dx_{\text{hat}} \cdot \hat{x})]$.
+- **MAIN FORMULA**: Implements $dx = \frac{1}{\sigma D} [D \cdot dx_{\text{hat}} - \sum dx_{\text{hat}} - \hat{x} \sum (dx_{\text{hat}} \cdot \hat{x})]$ where $\sigma = \sqrt{\sigma^2 + \epsilon}$.
 - **CONNECTION**: Propagates gradients back to $X$ and residual branches.
 
 #### `gelu(x)`
@@ -552,9 +552,9 @@ Embedding Backward:
 - **MAIN FORMULAS**:
   - $dW_{\text{vocab}} = X_{\text{norm}}^T @ dlogits, \quad db_{\text{vocab}} = \sum_{B, T} dlogits$
   - $dX_{\text{norm}} = dlogits @ W_{\text{vocab}}^T$
-  - $dX = \text{ln\_f.backward}(dX_{\text{norm}})$
-  - $dX = \text{block}_i\text{.backward}(dX)$ for $i = N \dots 1$
-  - $\text{token\_embeddings.backward}(dX)$
+  - `dX = ln_f.backward(dX_norm)`
+  - `dX = block[i].backward(dX)` for $i = N \dots 1$
+  - `token_embeddings.backward(dX)`
 - **CONNECTION**: Receives loss gradient $dlogits$ from `loss.py` (Phase 6) and populates parameter gradients for `optimizer.py` (Phase 7).
 
 #### `GPT.get_params()`
