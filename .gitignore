@@ -1,3 +1,38 @@
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+
+# Caches & Testing
 .pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# Logs & Temporary Files
+*.log
+tmp/
+temp/
+
+# Model Checkpoints & Serialized Arrays
+checkpoints/
+*.npy
+*.npz
