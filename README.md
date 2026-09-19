@@ -139,7 +139,28 @@ Optimizer.step(grads) ────────> In-place Parameter Updates
 
 ---
 
-## 6. Model Configuration
+## 6. Dataset
+
+- **Dataset Used**: Tiny Shakespeare
+- **Source File**: [`data/input.txt`](data/input.txt)
+- **Why It Was Chosen**: A compact, self-contained, and structurally rich text corpus that is ideally suited for training a from-scratch GPT model on a CPU without requiring GPUs or excessive memory.
+- **Training Task**: The model is trained purely for **next-token prediction** (autoregressive language modeling), predicting the next token $x_{t+1}$ given preceding context $x_{1 \dots t}$. It is **not** an instruction-tuned or conversational assistant (no RLHF, no instruction fine-tuning).
+- **Expected Output Style**: The theatrical, Shakespeare-style output is the direct and expected result of training on this specific dataset with a small model architecture. The model learns subword pairings, character names (e.g., `ROMEO:`), capitalization patterns, and verse line breaks present in the corpus.
+
+### Dataset Statistics
+
+| Metric | Value | Description |
+| :--- | :--- | :--- |
+| **Raw Characters Used** | 80,000 | Ingested from `data/input.txt` |
+| **Total Tokenized Size** | 56,310 | Subword tokens produced by `BPETokenizer` |
+| **Vocabulary Size** | 150 | Subwords induced through BPE merges |
+| **Split Ratio** | 90% Train / 10% Val | Deterministic chronological split (`seed = 42`) |
+| **Training Tokens** | 50,679 | Used exclusively for training and parameter updates |
+| **Validation Tokens** | 5,631 | Held out for inference-only loss and perplexity evaluation |
+
+---
+
+## 7. Model Configuration
 
 The measured model architecture configured and trained in this repository:
 
@@ -156,14 +177,12 @@ The measured model architecture configured and trained in this repository:
 
 ---
 
-## 7. Training & Evaluation
+## 8. Training & Evaluation
 
-- **Dataset**: `data/input.txt` (Tiny Shakespeare, first 80,000 characters).
-- **Tokenized Size**: 56,310 total tokens.
-- **Split Ratio**: Deterministic 90/10 split (`seed = 42`):
-  - **Training split**: 50,679 tokens
-  - **Validation split**: 5,631 tokens (strictly held out; never participates in backprop or parameter updates)
+- **Data Splits**: 50,679 training tokens (90%) and 5,631 validation tokens (10%), strictly isolated.
 - **Training Budget**: 100 iterations, batch size $B = 4$, context length $T = 32$, learning rate $\alpha = 3 \times 10^{-3}$.
+- **Optimizer**: Adam ($\beta_1 = 0.9, \beta_2 = 0.999, \epsilon = 10^{-8}$).
+- **Evaluation Safety**: Validation metrics are computed via forward pass only; no gradients are calculated and no weights are updated using validation data.
 
 ### Phase 9B Training Trajectory (Adam)
 
@@ -178,7 +197,7 @@ The measured model architecture configured and trained in this repository:
 
 ---
 
-## 8. Results
+## 9. Results
 
 ### SGD vs. Adam Benchmark
 
@@ -197,7 +216,7 @@ Both optimizers were evaluated under strictly identical conditions (same initial
 
 ---
 
-## 9. Text Generation
+## 10. Text Generation
 
 The text generation pipeline is **strictly inference-only** (no loss computation, no backward propagation, and no parameter updates):
 
@@ -234,7 +253,7 @@ BPE Decode ─────────────> Generated Text
 
 ---
 
-## 10. Terminal Interface
+## 11. Terminal Interface
 
 ForgeGPT includes an interactive terminal chat interface in `chat.py` styled with ANSI box drawing:
 
@@ -276,7 +295,7 @@ Exiting ForgeGPT. Goodbye!
 
 ---
 
-## 11. How to Run
+## 12. How to Run
 
 ### 1. Clone and Open Project
 ```bash
@@ -316,7 +335,7 @@ python3 chat.py
 
 ---
 
-## 12. Testing & Verification
+## 13. Testing & Verification
 
 The repository maintains an automated test suite in `tests/test_components.py`:
 
@@ -340,7 +359,7 @@ The repository maintains an automated test suite in `tests/test_components.py`:
 
 ---
 
-## 13. Limitations
+## 14. Limitations
 
 - **Small Model Scale**: At 36,246 parameters ($d_{\text{model}} = 32, N = 2$), model capacity is limited to basic character/subword patterns.
 - **Short Training Budget**: 100 steps (12,800 tokens processed) demonstrates optimization and validation convergence but is insufficient for coherent English generation.
@@ -350,7 +369,7 @@ The repository maintains an automated test suite in `tests/test_components.py`:
 
 ---
 
-## 14. Future Improvements
+## 15. Future Improvements
 
 - **Extended Training Runs**: Scale training to more iterations across the entire Shakespeare corpus or larger text datasets.
 - **Larger Model Configurations**: Scale $d_{\text{model}}$, number of layers ($N$), and attention heads ($h$) to assess capacity scaling.
@@ -361,7 +380,7 @@ The repository maintains an automated test suite in `tests/test_components.py`:
 
 ---
 
-## 15. Learning / Engineering Highlights
+## 16. Learning / Engineering Highlights
 
 - **Manual Transformer Mathematics**: Implemented scaled dot-product attention, causal masks, layer normalization, and GELU activations directly from mathematical formulas in NumPy.
 - **Analytical Backpropagation**: Derived and implemented backward passes across every sublayer, verified against finite-difference numerical gradients.
